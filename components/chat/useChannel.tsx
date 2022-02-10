@@ -25,5 +25,5 @@ export function useChannel(channelName: string, callbackOnMessage: (msg: Types.M
 
   useEffect(useEffectHook);
 
-  return [channel, ably];
+  return [channel, ably] as const;
 }

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useChannel } from "./useChannel";
 import styles from "./Chat.module.css";
 import { Types } from "ably/ably";
 
 function Chat() {
-  let inputBox = null;
-  let messageEnd = null;
+  const inputBox = useRef<HTMLTextAreaElement>(null);
+  const messageEnd = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState("");
   const [receivedMessages, setMessages] = useState<Types.Message[]>([]);
   const messageTextIsEmpty = messageText.trim().length === 0;
@@ -22,19 +22,19 @@ function Chat() {
     // setMessages react useState hook
   });
 
-  const sendChatMessage = (messageText) => {
+  const sendChatMessage = async (messageText: string) => {
     channel.publish({ name: "chat-message", data: messageText });
     setMessageText("");
-    inputBox.focus();
+    inputBox.current?.focus();
   };
 
-  const handleFormSubmission = (event) => {
+  const handleFormSubmission = (event: React.SyntheticEvent) => {
     event.preventDefault();
     sendChatMessage(messageText);
   };
 
-  const handleKeyPress = (event) => {
-    if (event.charCode !== 13 || messageTextIsEmpty) {
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.code !== "Backspace" || messageTextIsEmpty) {
       return;
     }
     sendChatMessage(messageText);
@@ -51,24 +51,18 @@ function Chat() {
   });
 
   useEffect(() => {
-    messageEnd.scrollIntoView({ behaviour: "smooth" });
+    messageEnd.current?.scrollIntoView({ behavior: "smooth" });
   });
 
   return (
     <div className={styles.chatHolder}>
       <div className={styles.chatText}>
         {messages}
-        <div
-          ref={(element) => {
-            messageEnd = element;
-          }}
-        ></div>
+        <div ref={messageEnd}></div>
       </div>
       <form onSubmit={handleFormSubmission} className={styles.form}>
         <textarea
-          ref={(element) => {
-            inputBox = element;
-          }}
+          ref={inputBox}
           value={messageText}
           placeholder="Type a message..."
           onChange={(e) => setMessageText(e.target.value)}
